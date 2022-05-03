@@ -23,7 +23,7 @@ class ObliqueDT:
             indices = indices * 2 + 1
             indices[tmp > 0] += 1
 
-        return indices - 15
+        return self.labels[indices - 15]
 
     @staticmethod
     def build_from_16_centroids(centroids: np.array):
@@ -59,10 +59,10 @@ class ObliqueDT:
                             list(set(indices[i]).difference(
                                 indices[i * 2 + 1]))
                     else:
-                        labels[i * 2 + 1 - 15] = comb[0]
+                        labels[i * 2 + 1 - 15] = indices[i][comb[0]]
                         labels[i * 2 + 2 - 15] = \
                             list(set(indices[i]).difference(
-                                [comb[0]]))[0]
+                                [indices[i][comb[0]]]))[0]
             if max_score < 1:
                 warnings.warn("max_score < 1")
 
