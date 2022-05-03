@@ -10,6 +10,21 @@ class ObliqueDT:
     splits_bias: np.array
     labels: np.array
 
+    def predict(self, x: np.array):
+        n, _ = x.shape
+        y = np.dot(x, self.splits_weight.T) + self.splits_bias
+        # (n, 15)
+        indices = np.zeros((n, ), dtype=np.int32)
+
+        for _ in range(4):
+            tmp = np.take_along_axis(
+                y, indices.reshape((n, 1)), axis=1).reshape((n,))
+            # (n,)
+            indices = indices * 2 + 1
+            indices[tmp > 0] += 1
+
+        return indices - 15
+
     @staticmethod
     def build_from_16_centroids(centroids: np.array):
         _, d = centroids.shape
@@ -26,7 +41,7 @@ class ObliqueDT:
             max_sep = 0
             for comb in itertools.combinations(range(l), l // 2):
                 y = np.ones((l, ), dtype=np.int32)
-                y[list(comb)] = 0
+                y[list(comb)] = -1
                 clf = svm.SVC(kernel='linear', C=1e4, max_iter=20)
                 clf.fit(x, y)
                 score = np.mean(clf.predict(x) == y)
@@ -44,10 +59,10 @@ class ObliqueDT:
                             list(set(indices[i]).difference(
                                 indices[i * 2 + 1]))
                     else:
-                        labels[i * 2 + 1] = comb[0]
-                        labels[i * 2 + 2] = \
+                        labels[i * 2 + 1 - 15] = comb[0]
+                        labels[i * 2 + 2 - 15] = \
                             list(set(indices[i]).difference(
-                                indices[i * 2 + 1]))[0]
+                                [comb[0]]))[0]
             if max_score < 1:
                 warnings.warn("max_score < 1")
 
